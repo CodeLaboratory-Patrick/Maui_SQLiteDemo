@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using SQLITEDemo.Repositories;
 
 namespace SQLITEDemo
 {
@@ -14,6 +15,8 @@ namespace SQLITEDemo
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
+            
+            builder.Services.AddSingleton<CustomerRepository>();
 
 #if DEBUG
     		builder.Logging.AddDebug();

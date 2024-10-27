@@ -1,10 +1,15 @@
-﻿namespace SQLITEDemo
+﻿using SQLITEDemo.Repositories;
+
+namespace SQLITEDemo
 {
     public partial class App : Application
     {
-        public App()
+        public static CustomerRepository CustomerRepo { get; private set; }
+        public App(CustomerRepository repo)
         {
             InitializeComponent();
+            
+            CustomerRepo = repo;
 
             MainPage = new AppShell();
         }
