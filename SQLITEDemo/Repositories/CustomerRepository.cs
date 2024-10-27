@@ -55,4 +55,18 @@ public class CustomerRepository
         }
         return null;
     }
+    
+    public List<Customer> GetAllTheSecondVersion()
+    {
+        try
+        {
+            return connection.Query<Customer>("SELECT * FROM Customers").ToList();
+        }
+        catch (Exception e)
+        {
+            StatusMessage = $"Error : {e.Message}";
+        }
+
+        return null;
+    }
 }
