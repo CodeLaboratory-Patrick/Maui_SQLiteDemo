@@ -1,4 +1,5 @@
-﻿using SQLITEDemo.Repositories;
+﻿using SQLITEDemo.MVVM.Views;
+using SQLITEDemo.Repositories;
 
 namespace SQLITEDemo
 {
@@ -11,7 +12,7 @@ namespace SQLITEDemo
             
             CustomerRepo = repo;
 
-            MainPage = new AppShell();
+            MainPage = new MainPager();
         }
     }
 }
