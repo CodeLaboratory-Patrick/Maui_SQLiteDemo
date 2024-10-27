@@ -27,4 +27,32 @@ public class CustomerRepository
             StatusMessage = $"Error : {e.Message}";
         }
     }
+
+    public List<Customer> GetAll()
+    {
+        try
+        {
+            return connection.Table<Customer>().ToList();
+        }
+        catch (Exception e)
+        {
+            StatusMessage = $"Error : {e.Message}";
+        }
+
+        return null;
+    }
+
+    public Customer Get(int id)
+    {
+        try
+        {
+            return connection.Table<Customer>()
+                .FirstOrDefault(x => x.ID == id);
+        }
+        catch (Exception e)
+        {
+            StatusMessage = $"Error : {e.Message}";
+        }
+        return null;
+    }
 }
