@@ -77,4 +77,17 @@ public class CustomerRepository
 
         return null;
     }
+
+    public void Delete(int customerID)
+    {
+        try
+        {
+            var customer = Get(customerID);
+            connection.Delete(customer);
+        }
+        catch (Exception e)
+        {
+            StatusMessage = $"Error : {e.Message}";
+        }
+    }
 }
