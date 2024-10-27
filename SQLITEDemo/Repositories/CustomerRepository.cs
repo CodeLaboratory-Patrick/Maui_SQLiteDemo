@@ -14,13 +14,21 @@ public class CustomerRepository
         connection.CreateTable<Customer>();
     }
 
-    public void Add(Customer newCustomer)
+    public void AddOrUpdate(Customer customer)
     {
         int result = 0;
         try
         {
-            result = connection.Insert(newCustomer);
-            StatusMessage = $"{result} row(s) created"; 
+            if (customer.ID != 0)
+            {
+                result = connection.Update(customer);
+                StatusMessage = $"{result} row(s) created"; 
+            }
+            else
+            {
+                result = connection.Insert(customer);
+                StatusMessage = $"{result} row(s) created"; 
+            }
         }
         catch (Exception e)
         {
