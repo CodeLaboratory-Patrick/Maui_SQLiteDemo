@@ -19,8 +19,6 @@ public class Customer : TableData
     public bool IsYoung =>
         Age > 50 ? true : false;
     
-    [OneToMany(CascadeOperations = CascadeOperation.CascadeInsert | 
-                                  CascadeOperation.CascadeRead |
-                                  CascadeOperation.CascadeDelete)]
+    [ManyToMany(typeof(Passport), CascadeOperations = CascadeOperation.All)]
     public List<Passport> Passport { get; set; }
 }

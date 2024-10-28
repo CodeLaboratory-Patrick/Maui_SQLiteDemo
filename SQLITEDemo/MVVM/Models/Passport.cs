@@ -7,6 +7,7 @@ public class Passport : TableData
 {
     public DateTime ExpirationDate { get; set; }
     
-    [ForeignKey(typeof(Customer))]
+    //[ForeignKey(typeof(Customer))]
+    [ManyToMany(typeof(Customer))]
     public int CustomerId { get; set; }
 }
