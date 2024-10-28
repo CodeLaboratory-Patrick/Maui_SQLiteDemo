@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using SQLite;
 using SQLITEDemo.Abstractions;
+using SQLiteNetExtensions.Extensions;
 
 namespace SQLITEDemo.Repositories;
 
@@ -40,6 +41,11 @@ public class BaseRepository <T> : IBaseRepository<T> where T : TableData, new()
         {
             StatusMessage = $"Error : {e.Message}";
         }
+    }
+
+    public void SaveItemWithChildren(T item, bool recursive = false)
+    {
+        connection.InsertWithChildren(item, recursive);
     }
 
     public T GetItem(int id)

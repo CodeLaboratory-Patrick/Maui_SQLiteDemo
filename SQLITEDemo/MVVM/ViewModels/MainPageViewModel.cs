@@ -22,7 +22,8 @@ public class MainPageViewModel
 
         AddOrUpdateCommand = new Command(async () =>
         {
-            App.CustomerRepo.SaveItem(CurrentCustomer);
+            //App.CustomerRepo.SaveItem(CurrentCustomer);
+            App.CustomerRepo.SaveItemWithChildren(CurrentCustomer);
             Console.WriteLine(App.CustomerRepo.StatusMessage);
             GenerateNewCustomer();
             Refresh();

@@ -21,6 +21,6 @@ public class Customer : TableData
     
     [ForeignKey(typeof(Passport))]
     public int PassportId { get; set; }
-    [OneToOne]
+    [OneToOne(CascadeOperations = CascadeOperation.CascadeInsert)]
     public Passport Passport { get; set; }
 }
