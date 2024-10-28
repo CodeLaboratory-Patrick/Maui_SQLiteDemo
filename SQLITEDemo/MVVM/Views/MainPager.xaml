@@ -3,6 +3,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="SQLITEDemo.MVVM.Views.MainPager"
+             xmlns:local="clr-namespace:SQLITEDemo.MVVM.ViewModels"
              Title="MainPager">
     
     <Grid RowDefinitions=".2*, .8*">
@@ -20,6 +21,16 @@
                         SelectedItem="{Binding CurrentCustomer}">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
+                    <SwipeView>
+                        <SwipeView.LeftItems>
+                            <SwipeItems>
+                                <SwipeItem 
+                                    Text="Delete"
+                                    BackgroundColor="Purple"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:MainPageViewModel}}, Path=DeleteCommand}"/>
+                            </SwipeItems>
+                        </SwipeView.LeftItems>
+                    </SwipeView>
                     <Grid ColumnDefinitions="*,*">
                         <Label Text="{Binding Name}" />
                         <Label Text="{Binding Address}"

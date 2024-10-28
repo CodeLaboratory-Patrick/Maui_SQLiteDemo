@@ -12,6 +12,7 @@ public class MainPageViewModel
     public Customer CurrentCustomer { get; set; }
     
     public ICommand AddOrUpdateCommand { get; set; }
+    public ICommand DeleteCommand { get; set; }
 
     public MainPageViewModel()
     {
@@ -23,6 +24,11 @@ public class MainPageViewModel
             App.CustomerRepo.AddOrUpdate(CurrentCustomer);
             Console.WriteLine(App.CustomerRepo.StatusMessage);
             GenerateNewCustomer();
+            Refresh();
+        });
+        DeleteCommand = new Command(() =>
+        {
+            App.CustomerRepo.Delete(CurrentCustomer.ID);
             Refresh();
         });
     }
