@@ -125,7 +125,8 @@ public class BaseRepository <T> : IBaseRepository<T> where T : TableData, new()
     {
         try
         {
-            connection.Delete(item);
+            //connection.Delete(item);
+            connection.Delete(item, true);
         }
         catch (Exception e)
         {
