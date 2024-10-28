@@ -1,33 +1,38 @@
 using System.Linq.Expressions;
 using SQLite;
-using SQLITEDemo.MVVM.Models;
+using SQLITEDemo.Abstractions;
 
 namespace SQLITEDemo.Repositories;
 
-public class CustomerRepository
+public class BaseRepository <T> : IBaseRepository<T> where T : TableData, new()
 {
-    SQLiteConnection connection { get; set; }
+    SQLiteConnection connection;
     public string StatusMessage { get; set; }
 
-    public CustomerRepository()
+    public BaseRepository()
     {
         connection = new SQLiteConnection(Constants.DatabasePath, Constants.Flags);
-        connection.CreateTable<Customer>();
+        connection.CreateTable<T>();
+    }
+    
+    public void Dispose()
+    {
+        connection.Close();
     }
 
-    public void AddOrUpdate(Customer customer)
+    public void SaveItem(T item)
     {
         int result = 0;
         try
         {
-            if (customer.Id != 0)
+            if (item.Id != 0)
             {
-                result = connection.Update(customer);
+                result = connection.Update(item);
                 StatusMessage = $"{result} row(s) created"; 
             }
             else
             {
-                result = connection.Insert(customer);
+                result = connection.Insert(item);
                 StatusMessage = $"{result} row(s) created"; 
             }
         }
@@ -37,39 +42,28 @@ public class CustomerRepository
         }
     }
 
-    public List<Customer> GetAll()
+    public T GetItem(int id)
     {
         try
         {
-            return connection.Table<Customer>().ToList();
+            return
+                connection.Table<T>()
+                    .FirstOrDefault(x => x.Id == id);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            StatusMessage = $"Error : {e.Message}";
+            StatusMessage =
+                $"Error: {ex.Message}";
         }
-
         return null;
     }
-    
-    public List<Customer> GetAllTheSecondVersion()
-    {
-        try
-        {
-            return connection.Query<Customer>("SELECT * FROM Customers").ToList();
-        }
-        catch (Exception e)
-        {
-            StatusMessage = $"Error : {e.Message}";
-        }
 
-        return null;
-    }
-    
-    public List<Customer> GetAll(Expression<Func<Customer, bool>> predicate)
+    public T GetItem(Expression<Func<T, bool>> predicate)
     {
         try
         {
-            return connection.Table<Customer>().Where(predicate).ToList();
+            return connection.Table<T>()
+                .Where(predicate).FirstOrDefault();
         }
         catch (Exception e)
         {
@@ -79,26 +73,39 @@ public class CustomerRepository
         return null;
     }
 
-    public Customer Get(int id)
+    public List<T> GetItems()
     {
         try
         {
-            return connection.Table<Customer>()
-                .FirstOrDefault(x => x.Id == id);
+            return connection.Table<T>().ToList();
         }
         catch (Exception e)
         {
             StatusMessage = $"Error : {e.Message}";
         }
+
         return null;
     }
 
-    public void Delete(int customerID)
+    public List<T> GetItems(Expression<Func<T, bool>> predicate)
     {
         try
         {
-            var customer = Get(customerID);
-            connection.Delete(customer);
+            return connection.Table<T>().Where(predicate).ToList();
+        }
+        catch (Exception e)
+        {
+            StatusMessage = $"Error : {e.Message}";
+        }
+
+        return null;
+    }
+
+    public void DeleteItem(T item)
+    {
+        try
+        {
+            connection.Delete(item);
         }
         catch (Exception e)
         {

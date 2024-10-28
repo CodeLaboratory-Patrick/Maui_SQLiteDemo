@@ -1,13 +1,11 @@
 using SQLite;
+using SQLITEDemo.Abstractions;
 
 namespace SQLITEDemo.MVVM.Models;
 
 [System.ComponentModel.DataAnnotations.Schema.Table("Customers")]
-public class Customer
+public class Customer : TableData
 {
-    [PrimaryKey, AutoIncrement]
-    public int ID { get; set; }
-    
     [System.ComponentModel.DataAnnotations.Schema.Column("name"), Indexed, NotNull]
     public string Name { get; set; }
     [Unique]

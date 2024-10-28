@@ -16,19 +16,20 @@ public class MainPageViewModel
 
     public MainPageViewModel()
     {
+        var orders = App.OrdersRepo.GetItems();
         Refresh();
         GenerateNewCustomer();
 
         AddOrUpdateCommand = new Command(async () =>
         {
-            App.CustomerRepo.AddOrUpdate(CurrentCustomer);
+            App.CustomerRepo.SaveItem(CurrentCustomer);
             Console.WriteLine(App.CustomerRepo.StatusMessage);
             GenerateNewCustomer();
             Refresh();
         });
         DeleteCommand = new Command(() =>
         {
-            App.CustomerRepo.Delete(CurrentCustomer.ID);
+            App.CustomerRepo.DeleteItem(CurrentCustomer);
             Refresh();
         });
     }
@@ -43,7 +44,7 @@ public class MainPageViewModel
 
     private void Refresh()
     {
-        //Customers = App.CustomerRepo.GetAll();
-        Customers = App.CustomerRepo.GetAll(x => x.Name.StartsWith("A"));
+        Customers = App.CustomerRepo.GetItems();
+        //Customers = App.CustomerRepo.GetAll(x => x.Name.StartsWith("A"));
     }
 }
