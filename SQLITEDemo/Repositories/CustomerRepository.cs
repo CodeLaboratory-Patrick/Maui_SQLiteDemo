@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using SQLite;
 using SQLITEDemo.MVVM.Models;
 
@@ -49,20 +50,6 @@ public class CustomerRepository
 
         return null;
     }
-
-    public Customer Get(int id)
-    {
-        try
-        {
-            return connection.Table<Customer>()
-                .FirstOrDefault(x => x.ID == id);
-        }
-        catch (Exception e)
-        {
-            StatusMessage = $"Error : {e.Message}";
-        }
-        return null;
-    }
     
     public List<Customer> GetAllTheSecondVersion()
     {
@@ -75,6 +62,34 @@ public class CustomerRepository
             StatusMessage = $"Error : {e.Message}";
         }
 
+        return null;
+    }
+    
+    public List<Customer> GetAll(Expression<Func<Customer, bool>> predicate)
+    {
+        try
+        {
+            return connection.Table<Customer>().Where(predicate).ToList();
+        }
+        catch (Exception e)
+        {
+            StatusMessage = $"Error : {e.Message}";
+        }
+
+        return null;
+    }
+
+    public Customer Get(int id)
+    {
+        try
+        {
+            return connection.Table<Customer>()
+                .FirstOrDefault(x => x.ID == id);
+        }
+        catch (Exception e)
+        {
+            StatusMessage = $"Error : {e.Message}";
+        }
         return null;
     }
 
