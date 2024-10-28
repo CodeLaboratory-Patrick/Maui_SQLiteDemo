@@ -50,5 +50,6 @@ public class MainPageViewModel
     {
         Customers = App.CustomerRepo.GetItems();
         //Customers = App.CustomerRepo.GetAll(x => x.Name.StartsWith("A"));
+        var passport = App.PassportsRepo.GetItems();
     }
 }

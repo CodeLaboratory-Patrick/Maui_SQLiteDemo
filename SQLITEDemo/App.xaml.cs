@@ -10,12 +10,18 @@ namespace SQLITEDemo
         public static BaseRepository<Customer> CustomerRepo { get; private set; }
         
         public static BaseRepository<Order> OrdersRepo { get; private set; }
-        public App(BaseRepository<Customer> repo, BaseRepository<Order> ordersRepo)
+        
+        public static BaseRepository<Passport> PassportsRepo { get; private set; }
+        
+        public App(BaseRepository<Customer> repo, 
+            BaseRepository<Order> ordersRepo,
+            BaseRepository<Passport> passportsRepo)
         {
             InitializeComponent();
             
             CustomerRepo = repo;
             OrdersRepo = ordersRepo;
+            PassportsRepo = passportsRepo;
 
             MainPage = new MainPager();
         }
