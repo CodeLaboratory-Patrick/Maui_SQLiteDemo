@@ -16,26 +16,27 @@
                     Command="{Binding AddOrUpdateCommand}"/>
         </VerticalStackLayout>
         
-        <CollectionView Grid.Row="1" ItemsSource="{Binding Customers}"
-                        SelectionMode="Single"
-                        SelectedItem="{Binding CurrentCustomer}">
+        <CollectionView
+            Grid.Row="1"
+            ItemsSource="{Binding Customers}"
+            SelectedItem="{Binding CurrentCustomer}"
+            SelectionMode="Single">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <SwipeView>
                         <SwipeView.LeftItems>
                             <SwipeItems>
-                                <SwipeItem 
-                                    Text="Delete"
+                                <SwipeItem
                                     BackgroundColor="Purple"
-                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:MainPageViewModel}}, Path=DeleteCommand}"/>
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:MainPageViewModel}}, Path=DeleteCommand}"
+                                    Text="Delete" />
                             </SwipeItems>
                         </SwipeView.LeftItems>
+                        <Grid ColumnDefinitions="*,*">
+                            <Label Text="{Binding Name}" />
+                            <Label Grid.Column="1" Text="{Binding Address}" />
+                        </Grid>
                     </SwipeView>
-                    <Grid ColumnDefinitions="*,*">
-                        <Label Text="{Binding Name}" />
-                        <Label Text="{Binding Address}"
-                               Grid.Column="1" />
-                    </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
