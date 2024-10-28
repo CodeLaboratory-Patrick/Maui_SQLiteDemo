@@ -107,6 +107,20 @@ public class BaseRepository <T> : IBaseRepository<T> where T : TableData, new()
         return null;
     }
 
+    public List<T> GetItemsWithChildren()
+    {
+        try
+        {
+            return connection.GetAllWithChildren<T>().ToList();
+        }
+        catch (Exception e)
+        {
+            StatusMessage = $"Error : {e.Message}";
+        }
+
+        return null;
+    }
+
     public void DeleteItem(T item)
     {
         try

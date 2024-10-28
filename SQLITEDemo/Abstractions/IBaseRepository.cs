@@ -10,6 +10,6 @@ public interface IBaseRepository<T> : IDisposable where T : TableData, new()
     T GetItem(Expression<Func<T, bool>> predicate);
     List<T> GetItems();
     List<T> GetItems(Expression<Func<T, bool>> predicate);
-    
+    List<T> GetItemsWithChildren();
     void DeleteItem(T item);
 }

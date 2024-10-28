@@ -49,7 +49,8 @@ public class MainPageViewModel
 
     private void Refresh()
     {
-        Customers = App.CustomerRepo.GetItems();
+        //Customers = App.CustomerRepo.GetItems();
+        Customers = App.CustomerRepo.GetItemsWithChildren();
         //Customers = App.CustomerRepo.GetAll(x => x.Name.StartsWith("A"));
         var passport = App.PassportsRepo.GetItems();
     }
