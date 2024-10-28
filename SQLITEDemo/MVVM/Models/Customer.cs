@@ -17,4 +17,6 @@ public class Customer : TableData
     [Ignore] 
     public bool IsYoung =>
         Age > 50 ? true : false;
+    
+    public Passport Passport { get; set; }
 }
