@@ -793,3 +793,436 @@ Here are some references to learn more about SQLite CRUD operations in C#:
 - [C# SQLite Tutorial](https://zetcode.com/csharp/sqlite/)
 
 ---
+# Understanding Cascade Operations in C# with SQLite
+
+When working with relational databases like SQLite, the concept of **cascading** is an important tool for managing relationships between tables. Cascading helps to automatically apply changes, such as deletions or updates, from one table to another based on defined relationships. In this guide, we will explore what cascading is, how to use it in a C# application with SQLite, its features, provide detailed examples, and discuss the scenarios where it can be useful.
+
+## What is Cascade in SQLite?
+
+**Cascading** refers to operations in a relational database where changes in one table automatically cause corresponding changes in another related table. This is especially useful in maintaining referential integrity between related tables. Cascade operations are often used with **foreign keys** to ensure that updates or deletions of rows in a parent table propagate to the child table.
+
+SQLite supports cascade operations through **foreign key constraints**. In the context of C#, these constraints can be implemented using attributes and methods available in the **SQLite-net** library, which allows the database to automatically manage related records.
+
+### Types of Cascade Operations
+- **ON DELETE CASCADE**: When a record in the parent table is deleted, all related records in the child table are also deleted automatically.
+- **ON UPDATE CASCADE**: When a record in the parent table is updated, related records in the child table are updated accordingly.
+
+## Enabling Foreign Keys in SQLite
+SQLite requires explicit activation of foreign key constraints. To enable foreign key support in SQLite using C#, you need to run a command after opening a connection:
+
+```csharp
+connection.Execute("PRAGMA foreign_keys = ON;");
+```
+This ensures that foreign key constraints, including cascade operations, are enforced by the database engine.
+
+## Example: Implementing Cascade in C# with SQLite
+Consider a scenario where you have two tables: `Orders` and `OrderItems`. Each order can have multiple order items, creating a one-to-many relationship.
+
+### Defining the Classes
+```csharp
+using SQLite;
+using System.Collections.Generic;
+
+public class Order
+{
+    [PrimaryKey, AutoIncrement]
+    public int OrderId { get; set; }
+
+    [NotNull]
+    public string CustomerName { get; set; }
+
+    [OneToMany(CascadeOperations = CascadeOperation.All)]
+    public List<OrderItem> Items { get; set; }
+}
+
+public class OrderItem
+{
+    [PrimaryKey, AutoIncrement]
+    public int OrderItemId { get; set; }
+
+    [ForeignKey(typeof(Order))]
+    public int OrderId { get; set; }
+
+    [NotNull]
+    public string ProductName { get; set; }
+
+    public int Quantity { get; set; }
+}
+```
+
+### Explanation
+- **`Order` Class**: Represents the `Orders` table. It includes an `OrderId` as the primary key and a list of `OrderItem` objects.
+- **`OrderItem` Class**: Represents the `OrderItems` table. It includes `OrderItemId` as the primary key and `OrderId` as a foreign key, establishing a relationship with the `Order` table.
+- **Cascade Attribute**: The `[OneToMany(CascadeOperations = CascadeOperation.All)]` attribute defines that operations on the `Order` should be cascaded to `OrderItem` (i.e., deleting an `Order` will also delete related `OrderItem` records).
+
+### Enabling Foreign Keys and Creating Tables
+```csharp
+using System;
+
+public class DatabaseService
+{
+    private SQLiteConnection connection;
+
+    public DatabaseService(string databasePath)
+    {
+        connection = new SQLiteConnection(databasePath);
+        connection.Execute("PRAGMA foreign_keys = ON;");
+        connection.CreateTable<Order>();
+        connection.CreateTable<OrderItem>();
+    }
+
+    public void DeleteOrder(int orderId)
+    {
+        try
+        {
+            connection.Delete<Order>(orderId);
+            Console.WriteLine("Order and related items deleted successfully.");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Error: {e.Message}");
+        }
+    }
+}
+```
+### Explanation
+- **Foreign Keys Activation**: `PRAGMA foreign_keys = ON` ensures that SQLite enforces foreign key constraints, allowing cascading delete operations.
+- **`DeleteOrder(int orderId)` Method**: Deletes an order from the `Orders` table. Due to the cascade setting, all associated order items in the `OrderItems` table are also deleted automatically.
+
+## When to Use Cascade Operations?
+
+| Use Case                          | Description                                                                                 |
+|-----------------------------------|---------------------------------------------------------------------------------------------|
+| **Maintaining Referential Integrity** | Automatically keep related data consistent without manual intervention.                  |
+| **Complex Relationships**         | Simplify management of complex one-to-many or many-to-many relationships.                   |
+| **Reducing Code Complexity**      | Minimize the need to write additional logic for managing related records.                   |
+| **Data Cleanup**                  | Ensures that when a parent record is deleted, no orphaned child records remain.            |
+
+## Pros and Cons of Using Cascades
+
+| Pros                                         | Cons                                                            |
+|----------------------------------------------|-----------------------------------------------------------------|
+| **Automatic Cleanup**: Keeps database clean. | **Unintentional Deletions**: Improper use can lead to data loss.|
+| **Consistency**: Maintains data integrity.   | **Limited Control**: Less manual control over deletions.        |
+| **Simplified Code**: Less code to manage relationships. | **Performance Impact**: Cascades may slow down large delete operations. |
+
+## Resources for Further Reading
+Here are some references to help you learn more about cascading in SQLite with C#:
+
+- [SQLite Documentation on Foreign Keys](https://www.sqlite.org/foreignkeys.html)
+- [SQLite-net GitHub Documentation](https://github.com/praeclarum/sqlite-net)
+- [Entity Framework with SQLite](https://learn.microsoft.com/en-us/ef/core/providers/sqlite/)
+- [C# SQLite Tutorial](https://zetcode.com/csharp/sqlite/)
+
+---
+# Understanding Cascade Insert, Cascade Read, and Cascade Delete in C# with SQLite
+
+Cascading in SQLite allows the propagation of changes (such as inserts, reads, and deletions) between related tables, maintaining consistency within relational databases. In C# applications, implementing cascading operations ensures that actions performed on a parent table also affect child tables without the need for explicit additional code. In this guide, we will explore how to perform **Cascade Insert**, **Cascade Read**, and **Cascade Delete** in SQLite using C#. We will go through what each operation is, its features, provide examples, and discuss relevant use cases.
+
+## What are Cascade Operations?
+
+Cascade operations ensure that when a change is made to a record in a parent table, related changes are automatically propagated to the associated records in child tables. This is crucial for maintaining data consistency and simplifying code in relational databases.
+
+### Types of Cascade Operations
+- **Cascade Insert**: Automatically inserts related records into the child table when a new parent record is added.
+- **Cascade Read**: Reads all related records from child tables alongside the parent record, providing complete data retrieval for a given relationship.
+- **Cascade Delete**: Deletes related records from the child table automatically when the corresponding parent record is deleted.
+
+## Example Scenario: Orders and OrderItems
+Consider a simple example where you have two tables: `Order` and `OrderItems`. Each order can contain multiple items, establishing a one-to-many relationship.
+
+### Defining the Classes for Cascading Operations
+
+```csharp
+using SQLite;
+using System.Collections.Generic;
+
+public class Order
+{
+    [PrimaryKey, AutoIncrement]
+    public int OrderId { get; set; }
+
+    [NotNull]
+    public string CustomerName { get; set; }
+
+    [OneToMany(CascadeOperations = CascadeOperation.All)]
+    public List<OrderItem> Items { get; set; }
+}
+
+public class OrderItem
+{
+    [PrimaryKey, AutoIncrement]
+    public int OrderItemId { get; set; }
+
+    [ForeignKey(typeof(Order))]
+    public int OrderId { get; set; }
+
+    [NotNull]
+    public string ProductName { get; set; }
+
+    public int Quantity { get; set; }
+}
+```
+
+### Enabling Foreign Keys in SQLite
+SQLite requires foreign keys to be explicitly enabled to perform cascading operations:
+
+```csharp
+connection.Execute("PRAGMA foreign_keys = ON;");
+```
+
+This command must be run after establishing the connection to ensure that SQLite enforces the defined foreign key constraints.
+
+## Detailed Examples of Cascade Operations
+
+### 1. Cascade Insert
+Cascade inserts occur when a new `Order` is inserted, and related `OrderItems` are automatically added.
+
+```csharp
+public void AddOrderWithItems(Order order)
+{
+    try
+    {
+        connection.InsertWithChildren(order, recursive: true);
+        Console.WriteLine("Order and related items inserted successfully.");
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine($"Error: {e.Message}");
+    }
+}
+```
+- **`InsertWithChildren()`**: This method inserts the `Order` and recursively inserts all associated `OrderItems`. The `recursive` parameter ensures that related child records are also inserted.
+
+### 2. Cascade Read
+Cascade reads are used to retrieve a parent record along with all its related child records in one operation.
+
+```csharp
+public Order GetOrderWithItems(int orderId)
+{
+    try
+    {
+        var order = connection.GetWithChildren<Order>(orderId);
+        Console.WriteLine("Order and related items fetched successfully.");
+        return order;
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine($"Error: {e.Message}");
+    }
+    return null;
+}
+```
+- **`GetWithChildren()`**: Fetches the `Order` object along with its associated `OrderItems`.
+
+### 3. Cascade Delete
+Cascade delete ensures that when an `Order` is deleted, all related `OrderItems` are deleted automatically.
+
+```csharp
+public void DeleteOrder(int orderId)
+{
+    try
+    {
+        var order = connection.GetWithChildren<Order>(orderId);
+        connection.Delete(order, recursive: true);
+        Console.WriteLine("Order and related items deleted successfully.");
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine($"Error: {e.Message}");
+    }
+}
+```
+- **`Delete(order, recursive: true)`**: Deletes the `Order` and all associated `OrderItems` recursively.
+
+## When to Use Cascade Operations?
+
+| Use Case                           | Description                                                                                 |
+|------------------------------------|---------------------------------------------------------------------------------------------|
+| **Complex Parent-Child Relationships** | Suitable when managing one-to-many relationships where actions on the parent affect children. |
+| **Data Consistency Maintenance**   | Ensures consistency by automating insert, update, or delete operations between related tables. |
+| **Simplify Code**                  | Reduces the need for writing explicit logic to handle each child record individually.         |
+| **Data Cleanup**                   | Prevents orphaned records when deleting parent records, ensuring the database remains clean.  |
+
+### Pros and Cons of Cascade Operations
+
+| Pros                                         | Cons                                                            |
+|----------------------------------------------|-----------------------------------------------------------------|
+| **Automated Management**: Saves time by automatically propagating changes. | **Data Loss Risk**: Improper use of cascade delete could result in unintended data loss. |
+| **Consistency**: Keeps the database consistent and reduces redundant code. | **Performance**: Cascade operations may slow down when dealing with large datasets.      |
+| **Code Simplification**: Easier to manage relationships without writing repeated logic. | **Complexity**: For large relationships, debugging cascade issues could be challenging. |
+
+## Resources for Further Reading
+To learn more about cascading operations in SQLite and C#:
+
+- [SQLite Documentation on Foreign Keys](https://www.sqlite.org/foreignkeys.html)
+- [SQLite-net GitHub Documentation](https://github.com/praeclarum/sqlite-net)
+- [Entity Framework with SQLite](https://learn.microsoft.com/en-us/ef/core/providers/sqlite/)
+- [C# SQLite Tutorial](https://zetcode.com/csharp/sqlite/)
+
+---
+
+# Understanding Relationships in C# with SQLite: One-to-One, One-to-Many, and Many-to-Many
+
+In relational databases, relationships between tables are crucial for representing real-world data and its associations. SQLite, when used in a C# application, provides ways to manage different types of relationships, such as **One-to-One**, **One-to-Many**, and **Many-to-Many**. In this guide, we will explore these types of relationships, their characteristics, and how to implement them in C# using SQLite-net. We'll also go over examples and discuss scenarios where each type of relationship is most appropriate.
+
+## Types of Relationships
+- **One-to-One**: One record in a table is related to one and only one record in another table.
+- **One-to-Many**: One record in a table is related to multiple records in another table.
+- **Many-to-Many**: Many records in a table are related to many records in another table.
+
+### Overview of Relationships
+| Relationship Type   | Description                                                                                   | Example Use Case                              |
+|---------------------|-----------------------------------------------------------------------------------------------|-----------------------------------------------|
+| **One-to-One**      | Each record in the first table relates to a single record in the second table.                | A person has a unique passport.               |
+| **One-to-Many**     | A single record in the first table relates to multiple records in the second table.           | A customer can have multiple orders.          |
+| **Many-to-Many**    | Records in one table are related to multiple records in the second table, and vice versa.     | Students enrolled in multiple courses.        |
+
+## 1. One-to-One Relationship
+A **One-to-One** relationship means that each row in Table A is associated with exactly one row in Table B. This can be useful for separating optional information into another table to improve organization or security.
+
+### Example: Person and Passport
+Consider the relationship between a `Person` and a `Passport`.
+
+```csharp
+using SQLite;
+
+public class Person
+{
+    [PrimaryKey, AutoIncrement]
+    public int PersonId { get; set; }
+
+    [NotNull]
+    public string Name { get; set; }
+
+    [OneToOne(CascadeOperations = CascadeOperation.CascadeInsert | CascadeOperation.CascadeRead | CascadeOperation.CascadeDelete)]
+    public Passport Passport { get; set; }
+}
+
+public class Passport
+{
+    [PrimaryKey, AutoIncrement]
+    public int PassportId { get; set; }
+
+    [ForeignKey(typeof(Person))]
+    public int PersonId { get; set; }
+
+    [NotNull]
+    public string PassportNumber { get; set; }
+}
+```
+### Explanation
+- **`Person` Class**: Represents individuals. Each `Person` can have an associated `Passport`.
+- **`Passport` Class**: Contains details about the passport and links to a `Person` through the `PersonId` foreign key.
+- **`[OneToOne]` Attribute**: Specifies a one-to-one relationship between `Person` and `Passport`.
+
+## 2. One-to-Many Relationship
+A **One-to-Many** relationship means that a row in Table A is related to multiple rows in Table B. This is the most common type of relationship.
+
+### Example: Customer and Orders
+Consider the relationship between a `Customer` and their `Orders`.
+
+```csharp
+using SQLite;
+using System.Collections.Generic;
+
+public class Customer
+{
+    [PrimaryKey, AutoIncrement]
+    public int CustomerId { get; set; }
+
+    [NotNull]
+    public string Name { get; set; }
+
+    [OneToMany(CascadeOperations = CascadeOperation.All)]
+    public List<Order> Orders { get; set; }
+}
+
+public class Order
+{
+    [PrimaryKey, AutoIncrement]
+    public int OrderId { get; set; }
+
+    [ForeignKey(typeof(Customer))]
+    public int CustomerId { get; set; }
+
+    [NotNull]
+    public string Product { get; set; }
+}
+```
+### Explanation
+- **`Customer` Class**: Represents customers, each of whom may have multiple `Orders`.
+- **`Order` Class**: Represents an individual order, linked to a `Customer` through `CustomerId`.
+- **`[OneToMany]` Attribute**: Indicates that a `Customer` can have multiple `Orders`.
+
+## 3. Many-to-Many Relationship
+A **Many-to-Many** relationship occurs when multiple rows in Table A are related to multiple rows in Table B. This is usually implemented through a **junction table**.
+
+### Example: Students and Courses
+Consider a scenario where `Student` can enroll in multiple `Courses`, and each `Course` can have multiple `Students`.
+
+```csharp
+using SQLite;
+using System.Collections.Generic;
+
+public class Student
+{
+    [PrimaryKey, AutoIncrement]
+    public int StudentId { get; set; }
+
+    [NotNull]
+    public string Name { get; set; }
+
+    [ManyToMany(typeof(StudentCourse))]
+    public List<Course> Courses { get; set; }
+}
+
+public class Course
+{
+    [PrimaryKey, AutoIncrement]
+    public int CourseId { get; set; }
+
+    [NotNull]
+    public string CourseName { get; set; }
+
+    [ManyToMany(typeof(StudentCourse))]
+    public List<Student> Students { get; set; }
+}
+
+public class StudentCourse
+{
+    [ForeignKey(typeof(Student))]
+    public int StudentId { get; set; }
+
+    [ForeignKey(typeof(Course))]
+    public int CourseId { get; set; }
+}
+```
+### Explanation
+- **`Student` Class**: Represents students, each of whom can enroll in multiple `Courses`.
+- **`Course` Class**: Represents courses, each of which can have multiple `Students`.
+- **`StudentCourse` Junction Table**: Represents the many-to-many relationship by linking `StudentId` and `CourseId`.
+- **`[ManyToMany]` Attribute**: Indicates a many-to-many relationship, with a junction table (`StudentCourse`) to facilitate the relationship.
+
+## When to Use Each Type of Relationship?
+| Relationship Type   | Scenario                                                                                     |
+|---------------------|---------------------------------------------------------------------------------------------|
+| **One-to-One**      | Use when each entity in Table A must be uniquely linked to one entity in Table B. Useful for separating optional or sensitive data (e.g., separating contact details from the main user record). |
+| **One-to-Many**     | Most suitable for relationships where a parent entity needs to link to multiple child entities. Examples include orders belonging to a customer or comments on a blog post. |
+| **Many-to-Many**    | Use when multiple entities need to be related to multiple others. Ideal for scenarios like students enrolling in multiple courses or tags applied to multiple articles. |
+
+## Pros and Cons of Relationships in SQLite
+| Pros                                    | Cons                                                            |
+|-----------------------------------------|-----------------------------------------------------------------|
+| **Data Normalization**: Reduces redundancy by splitting data into separate tables. | **Complexity**: Can add complexity to database schema and retrieval logic. |
+| **Referential Integrity**: Maintains relationships between data automatically. | **Performance Overhead**: Joins between tables may impact performance, especially for many-to-many relationships. |
+| **Logical Organization**: Provides a structured, real-world representation of data. | **Foreign Key Management**: Requires proper handling of foreign keys for cascading operations. |
+
+## Resources for Further Reading
+Here are some references to learn more about managing relationships in SQLite using C#:
+
+- [SQLite Official Documentation](https://www.sqlite.org/docs.html)
+- [SQLite-net GitHub Documentation](https://github.com/praeclarum/sqlite-net)
+- [Microsoft Data SQLite Documentation](https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/?tabs=netcore-cli)
+- [Entity Framework Relationships](https://learn.microsoft.com/en-us/ef/core/modeling/relationships)
+- [C# SQLite Tutorial](https://zetcode.com/csharp/sqlite/)
