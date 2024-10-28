@@ -314,3 +314,482 @@ Here are some references to help you learn more about SQLite data types in .NET:
 - [Microsoft.Data.Sqlite Documentation](https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/types)
 - [C# SQLite Tutorial](https://zetcode.com/csharp/sqlite/)
 ---
+
+# Understanding `SQLiteOpenFlags` in .NET
+
+In SQLite for .NET, `SQLiteOpenFlags` is an enumeration that specifies options for how a database file should be opened. These flags control various behaviors of the SQLite connection, such as whether the file should be created if it doesn't exist or how it should be accessed (read-only or read-write). Understanding how to use these flags effectively can help ensure efficient database management and prevent issues related to data access.
+
+In this document, we'll break down what `SQLiteOpenFlags` are, their various options, provide examples, explain when to use them, and offer resources for further reading.
+
+## What is `SQLiteOpenFlags`?
+
+`SQLiteOpenFlags` is an enumeration defined in the `SQLite` library that is used to configure the way an SQLite database connection is opened. This enumeration includes multiple options that you can combine to customize the behavior of your connection.
+
+You typically use `SQLiteOpenFlags` when creating or configuring a database connection, for example, when using `SQLiteConnection` in the **SQLite-net** library for .NET applications.
+
+## Common `SQLiteOpenFlags` Options
+
+| Flag                       | Description                                                                                     |
+|----------------------------|-------------------------------------------------------------------------------------------------|
+| `ReadOnly`                 | Opens the database in read-only mode.                                                          |
+| `ReadWrite`                | Opens the database in read-write mode, but will not create the file if it does not exist.       |
+| `Create`                   | Creates the database file if it does not exist.                                                 |
+| `FullMutex`                | Ensures that multiple threads can safely access the database.                                   |
+| `SharedCache`              | Allows multiple database connections to share the same cache.                                   |
+| `PrivateCache`             | Prevents the connection from using the shared cache, creating a private cache instead.          |
+| `NoMutex`                  | Disables mutexes, allowing faster database access but risking thread safety.                    |
+
+### Declaring `SQLiteOpenFlags` in C#
+Here is an example of how to declare `SQLiteOpenFlags` in a .NET application:
+
+```csharp
+using SQLite;
+
+public class DatabaseConfig
+{
+    public const SQLiteOpenFlags Flags = SQLiteOpenFlags.ReadWrite |
+                                         SQLiteOpenFlags.Create |
+                                         SQLiteOpenFlags.FullMutex;
+}
+```
+
+### Explanation of Example
+In the example above:
+- **`SQLiteOpenFlags.ReadWrite`**: The database is opened in read-write mode, which means you can perform both read and write operations.
+- **`SQLiteOpenFlags.Create`**: If the specified database file does not exist, it will be created.
+- **`SQLiteOpenFlags.FullMutex`**: This ensures that the database can be accessed safely by multiple threads, preventing data corruption.
+
+## Example: Using `SQLiteOpenFlags` in a Database Connection
+
+Below is a code snippet demonstrating how to use `SQLiteOpenFlags` when establishing a connection to an SQLite database in a C# application:
+
+```csharp
+using SQLite;
+using System;
+
+namespace SQLiteOpenFlagsExample
+{
+    public class DatabaseService
+    {
+        private const string DatabasePath = "mydatabase.db";
+
+        private static readonly SQLiteOpenFlags Flags = SQLiteOpenFlags.ReadWrite |
+                                                        SQLiteOpenFlags.Create |
+                                                        SQLiteOpenFlags.FullMutex;
+
+        public static SQLiteConnection GetConnection()
+        {
+            return new SQLiteConnection(DatabasePath, Flags);
+        }
+
+        public static void Main(string[] args)
+        {
+            using (var db = GetConnection())
+            {
+                Console.WriteLine("Database connected successfully with specified flags.");
+            }
+        }
+    }
+}
+```
+
+### Explanation
+- **`DatabasePath`**: This defines the path where the database is stored or will be created.
+- **`Flags`**: This constant contains multiple `SQLiteOpenFlags` values combined using the bitwise OR (`|`) operator.
+- **`GetConnection()`**: This method returns a connection object that uses the specified flags, allowing you to interact with the database according to the given configuration.
+
+## When to Use `SQLiteOpenFlags`?
+
+| Use Case                         | Recommended Flags                                                                           |
+|----------------------------------|---------------------------------------------------------------------------------------------|
+| **Read-Only Access**             | `SQLiteOpenFlags.ReadOnly`                                                                  |
+| **Full Read-Write Operations**   | `SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create`                                      |
+| **Multi-Threaded Access**        | `SQLiteOpenFlags.FullMutex` for thread safety                                               |
+| **In-Memory Database**           | Use in combination with `:memory:` as the database path                                     |
+| **Private Cache Requirement**    | `SQLiteOpenFlags.PrivateCache` to prevent sharing cache with other connections              |
+
+These flags allow for fine-grained control over how you interact with the SQLite database, which is particularly useful in scenarios that involve concurrency, cache management, or specific read/write requirements.
+
+## Resources and References
+Here are some resources you can use to learn more about `SQLiteOpenFlags` and their use in .NET:
+
+- [SQLite-net GitHub Documentation](https://github.com/praeclarum/sqlite-net)
+- [SQLite Data Types and Flags Documentation](https://www.sqlite.org/datatype3.html)
+- [Microsoft.Data.Sqlite Overview](https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/?tabs=netcore-cli)
+
+---
+# Understanding SQLite Connection in C#
+
+The statement `connection = new SQLiteConnection(Constants.DatabasePath, Constants.Flags);` is a common way to create a connection to an SQLite database in a C# application. It is part of the SQLite-net library for .NET, which makes it easy to interact with SQLite databases directly from your C# code.
+
+In this document, we'll explore what this connection statement is, its features, provide detailed examples, explain when and where to use it, and reference useful resources.
+
+## What is SQLite Connection?
+
+`SQLiteConnection` is a class provided by the SQLite-net library, which is used to establish a connection to an SQLite database. It takes in parameters such as the **database path** and **connection flags** to control how the connection should be opened and what behavior should be enabled. This statement is fundamental to managing data in an SQLite database, such as inserting, querying, updating, or deleting records.
+
+### Components of the Statement
+- **`SQLiteConnection`**: This class represents a connection to a specific SQLite database.
+- **`Constants.DatabasePath`**: This is typically a string that holds the path to the database file. It specifies where the database file is located or should be created.
+- **`Constants.Flags`**: These are connection flags that determine how the SQLite database should be accessed (e.g., read-only, read-write, create if not exists).
+
+## Example Code: Connecting to an SQLite Database
+Here’s an example of how you can set up and use `SQLiteConnection` in a C# application.
+
+```csharp
+using SQLite;
+using System;
+
+namespace SQLiteConnectionExample
+{
+    public static class Constants
+    {
+        public const string DatabasePath = "mydatabase.db";
+        public const SQLiteOpenFlags Flags = SQLiteOpenFlags.ReadWrite |
+                                             SQLiteOpenFlags.Create |
+                                             SQLiteOpenFlags.FullMutex;
+    }
+
+    public class DatabaseService
+    {
+        private SQLiteConnection connection;
+
+        public DatabaseService()
+        {
+            connection = new SQLiteConnection(Constants.DatabasePath, Constants.Flags);
+        }
+
+        public void TestConnection()
+        {
+            Console.WriteLine("Database connection established successfully.");
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            DatabaseService dbService = new DatabaseService();
+            dbService.TestConnection();
+        }
+    }
+}
+```
+
+### Explanation
+- **`Constants.DatabasePath`**: Defines the path where the database file is stored. In this example, `"mydatabase.db"` is used as the database file name.
+- **`Constants.Flags`**: Combines multiple `SQLiteOpenFlags` using the bitwise OR operator (`|`), allowing read-write access, automatic creation of the database file, and enabling full mutex for thread safety.
+- **`new SQLiteConnection(Constants.DatabasePath, Constants.Flags)`**: This creates a new SQLite connection object using the specified path and flags.
+- **`TestConnection()`**: A simple method that confirms the connection has been successfully created.
+
+## Understanding SQLite Connection Flags
+The connection flags are important as they determine the behavior of the database access. Below are some common flags used in SQLite .NET connections:
+
+| Flag                       | Description                                                                                     |
+|----------------------------|-------------------------------------------------------------------------------------------------|
+| `ReadOnly`                 | Opens the database in read-only mode.                                                          |
+| `ReadWrite`                | Opens the database in read-write mode, without creating it if it doesn’t exist.                 |
+| `Create`                   | Creates the database file if it doesn’t already exist.                                         |
+| `FullMutex`                | Ensures that the database connection is thread-safe by using a full mutex.                      |
+| `NoMutex`                  | Disables the mutex, which may be faster but is not thread-safe.                                 |
+
+## When to Use SQLite Connections in C#?
+
+`SQLiteConnection` is typically used in scenarios that require a lightweight, serverless database solution for local storage. Here are some common use cases:
+
+| Use Case                        | Description                                                                                 |
+|---------------------------------|---------------------------------------------------------------------------------------------|
+| **Mobile Applications**         | Ideal for mobile apps where local storage of structured data is needed.                     |
+| **Desktop Applications**        | Useful for small to medium-sized desktop applications needing a simple data storage solution.|
+| **IoT Devices**                 | Effective for devices with limited resources requiring data persistence.                    |
+| **Prototyping**                 | Great for quickly prototyping an application without the need for a heavy database server.   |
+| **Local Caching**               | Can be used as a local cache or a small datastore for holding data before syncing remotely.  |
+
+## Pros and Cons of Using SQLite Connections
+
+| Pros                                       | Cons                                           |
+|-------------------------------------------|------------------------------------------------|
+| **Lightweight**: Minimal resource usage.  | **Limited Concurrency**: Not ideal for heavy concurrent writes. |
+| **Serverless**: No database server setup. | **No Advanced Features**: Lacks complex RDBMS features like stored procedures. |
+| **Simple API**: Easy to implement and use.| **Single-User Focus**: Better for single-user or local applications.            |
+
+## Resources for Further Reading
+Here are some references to help you understand SQLite connections in C# more thoroughly:
+
+- [SQLite Documentation](https://www.sqlite.org/docs.html)
+- [SQLite-net GitHub Documentation](https://github.com/praeclarum/sqlite-net)
+- [Microsoft Data SQLite Documentation](https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/?tabs=netcore-cli)
+- [C# SQLite Tutorial](https://zetcode.com/csharp/sqlite/)
+
+---
+# Understanding `connection.CreateTable<>()` in SQLite for C#
+
+The method `connection.CreateTable<>()` is part of the SQLite-net library used in .NET applications for interacting with SQLite databases. This method provides a simple and efficient way to create a table in an SQLite database that corresponds to a C# class. In this guide, we will explore what `CreateTable<>()` is, its features, detailed examples, use cases, and offer references for further reading.
+
+## What is `connection.CreateTable<>()`?
+
+`CreateTable<>()` is a generic method in the **SQLite-net** library that allows you to create a table in the SQLite database based on the structure of a C# class. This method uses reflection to analyze the class properties, and it automatically generates the corresponding SQL command to create the table.
+
+### Features of `CreateTable<>()`
+
+- **Automatic Mapping**: Automatically creates an SQLite table based on a C# class structure, using attributes to define table and column characteristics.
+- **Ease of Use**: No need to write SQL statements manually for table creation, which saves time and reduces the chances of errors.
+- **Flexible Schema**: Supports a variety of attributes, such as `[PrimaryKey]`, `[AutoIncrement]`, `[NotNull]`, etc., to define column constraints.
+- **Safe Execution**: If the table already exists, the method does nothing, preventing errors related to duplicate table creation.
+
+### Example Code: Using `CreateTable<>()`
+
+Below is an example of how to use `CreateTable<>()` to create a table for a C# class.
+
+```csharp
+using SQLite;
+using System;
+
+namespace SQLiteCreateTableExample
+{
+    public class Employee
+    {
+        [PrimaryKey, AutoIncrement]
+        public int Id { get; set; }
+
+        [NotNull]
+        public string Name { get; set; }
+
+        public int Age { get; set; }
+
+        public double Salary { get; set; }
+    }
+
+    public class DatabaseService
+    {
+        private SQLiteConnection connection;
+
+        public DatabaseService(string databasePath)
+        {
+            connection = new SQLiteConnection(databasePath);
+            connection.CreateTable<Employee>();
+        }
+
+        public void AddEmployee(Employee employee)
+        {
+            connection.Insert(employee);
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var dbService = new DatabaseService("mydatabase.db");
+            dbService.AddEmployee(new Employee { Name = "John Doe", Age = 30, Salary = 50000 });
+            Console.WriteLine("Employee added successfully.");
+        }
+    }
+}
+```
+
+### Explanation
+- **`Employee` Class**: This class represents the structure of the table in the database. Attributes like `[PrimaryKey]` and `[AutoIncrement]` are used to define the primary key and auto-increment behavior for the `Id` column.
+- **`connection.CreateTable<Employee>()`**: This line creates a table named `Employee` in the SQLite database if it does not already exist.
+- **`AddEmployee` Method**: This method is used to insert a new employee record into the database.
+
+## Attributes Supported by `CreateTable<>()`
+
+| Attribute         | Description                                                                                     |
+|-------------------|-------------------------------------------------------------------------------------------------|
+| `[PrimaryKey]`    | Defines the primary key of the table.                                                           |
+| `[AutoIncrement]` | Indicates that the value should automatically increment for each new record.                   |
+| `[NotNull]`       | Specifies that the column cannot have a `NULL` value.                                           |
+| `[Unique]`        | Ensures that the value in the column is unique across all records in the table.                 |
+| `[Indexed]`       | Adds an index on the column, which can help speed up search operations.                         |
+
+## When to Use `CreateTable<>()`?
+
+The `CreateTable<>()` method is typically used in the following scenarios:
+
+| Use Case                           | Description                                                                                 |
+|------------------------------------|---------------------------------------------------------------------------------------------|
+| **Application Initialization**     | Used when initializing an application to ensure all required tables are created.            |
+| **Schema Setup for New Features**  | Creating new tables when adding new features to an application.                             |
+| **Embedded or Mobile Databases**   | Perfect for embedded systems, mobile applications, or desktop applications needing lightweight local storage. |
+| **Rapid Development**              | Helps during rapid development to quickly set up or modify the database structure.          |
+
+### Pros and Cons of `CreateTable<>()`
+
+| Pros                                       | Cons                                                       |
+|-------------------------------------------|------------------------------------------------------------|
+| **Simplifies Table Creation**: No SQL     | **Less Control**: Limited compared to manually defining tables with SQL. |
+| **Error Prevention**: Reduces risk of syntax errors. | **Complex Schemas**: Not suitable for highly complex table structures or relations. |
+| **Automatic Mapping**: Easily create tables from C# classes. | **Performance**: May be slower during initialization if the number of tables is large. |
+
+## Resources for Further Reading
+Here are some references to help you learn more about `CreateTable<>()` and its use in C# with SQLite:
+
+- [SQLite Documentation](https://www.sqlite.org/docs.html)
+- [SQLite-net GitHub Documentation](https://github.com/praeclarum/sqlite-net)
+- [Microsoft Data SQLite Documentation](https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/?tabs=netcore-cli)
+- [C# SQLite Tutorial](https://zetcode.com/csharp/sqlite/)
+
+---
+# Understanding SQLite CRUD Operations in C#
+
+The provided code is a series of methods to perform **CRUD** (Create, Read, Update, Delete) operations on an SQLite database using a C# application. These methods involve the use of SQLite-net to manage and manipulate data for a `Customer` object in a database. Let's break down what each method does, its features, provide detailed examples, and explore the scenarios where these operations are useful.
+
+## Code Overview
+
+The following methods are present in the code:
+
+1. **`AddOrUpdate(Customer customer)`**: Handles inserting or updating a customer record in the database.
+2. **`GetAll()`**: Retrieves all customer records from the database.
+3. **`Get(int id)`**: Retrieves a specific customer by ID.
+4. **`GetAllTheSecondVersion()`**: Retrieves all customer records using a direct SQL query.
+5. **`Delete(int customerID)`**: Deletes a specific customer from the database.
+
+### Features of CRUD Methods in SQLite
+
+- **Exception Handling**: Each method includes a `try-catch` block to handle exceptions gracefully, ensuring that errors are caught and communicated through a `StatusMessage` variable.
+- **Flexible Operations**: The `AddOrUpdate` method can both insert and update records, making it more versatile for data management.
+- **Direct Querying**: Methods such as `GetAllTheSecondVersion` demonstrate the ability to use direct SQL queries when needed for more flexibility.
+
+## Detailed Explanation of Each Method
+
+### `AddOrUpdate(Customer customer)`
+The `AddOrUpdate` method inserts a new customer record if the `ID` is zero (indicating a new customer) or updates an existing record if the `ID` is not zero.
+
+```csharp
+public void AddOrUpdate(Customer customer)
+{
+    int result = 0;
+    try
+    {
+        if (customer.ID != 0)
+        {
+            result = connection.Update(customer);
+            StatusMessage = $"{result} row(s) updated";
+        }
+        else
+        {
+            result = connection.Insert(customer);
+            StatusMessage = $"{result} row(s) created";
+        }
+    }
+    catch (Exception e)
+    {
+        StatusMessage = $"Error : {e.Message}";
+    }
+}
+```
+
+- **`Insert`**: Adds a new record to the database.
+- **`Update`**: Updates an existing record.
+- **`StatusMessage`**: Keeps track of the success or error messages.
+
+### `GetAll()`
+Retrieves all records from the `Customer` table and returns them as a list of `Customer` objects.
+
+```csharp
+public List<Customer> GetAll()
+{
+    try
+    {
+        return connection.Table<Customer>().ToList();
+    }
+    catch (Exception e)
+    {
+        StatusMessage = $"Error : {e.Message}";
+    }
+    return null;
+}
+```
+
+- **`connection.Table<Customer>()`**: Uses LINQ to access the `Customer` table and convert it to a list.
+- **Return Value**: Returns a list of all customer records, or `null` if an error occurs.
+
+### `Get(int id)`
+Fetches a specific customer based on the `ID` provided.
+
+```csharp
+public Customer Get(int id)
+{
+    try
+    {
+        return connection.Table<Customer>().FirstOrDefault(x => x.ID == id);
+    }
+    catch (Exception e)
+    {
+        StatusMessage = $"Error : {e.Message}";
+    }
+    return null;
+}
+```
+
+- **`FirstOrDefault`**: Retrieves the first match based on the condition (`ID == id`). Returns `null` if no record matches.
+
+### `GetAllTheSecondVersion()`
+Retrieves all records from the `Customer` table using a raw SQL query.
+
+```csharp
+public List<Customer> GetAllTheSecondVersion()
+{
+    try
+    {
+        return connection.Query<Customer>("SELECT * FROM Customers").ToList();
+    }
+    catch (Exception e)
+    {
+        StatusMessage = $"Error : {e.Message}";
+    }
+    return null;
+}
+```
+
+- **`Query<Customer>()`**: Executes a raw SQL command to retrieve all customer records.
+- **Direct SQL Usage**: Useful when more complex queries are needed.
+
+### `Delete(int customerID)`
+Deletes a specific customer record based on the provided `customerID`.
+
+```csharp
+public void Delete(int customerID)
+{
+    try
+    {
+        var customer = Get(customerID);
+        connection.Delete(customer);
+    }
+    catch (Exception e)
+    {
+        StatusMessage = $"Error : {e.Message}";
+    }
+}
+```
+
+- **`Delete`**: Removes the customer from the database if it exists.
+- **Dependency on `Get()`**: The customer is first retrieved and then deleted, ensuring the customer exists before deletion.
+
+## When to Use These CRUD Methods?
+
+| Use Case                         | Description                                                                                 |
+|----------------------------------|---------------------------------------------------------------------------------------------|
+| **Application Initialization**   | Use `CreateTable<>()` followed by `AddOrUpdate()` to initialize and populate the database.  |
+| **Data Management**              | Use `AddOrUpdate()` to handle both new inserts and updates for a streamlined user experience.|
+| **Retrieving All Data**          | Use `GetAll()` or `GetAllTheSecondVersion()` to display data in a list or UI.               |
+| **Single Record Operations**     | Use `Get(id)` to fetch specific customer details for editing or viewing.                    |
+| **Record Deletion**              | Use `Delete()` to remove customers that are no longer needed, e.g., in admin panels.        |
+
+## Pros and Cons of These CRUD Operations
+
+| Pros                                        | Cons                                                         |
+|--------------------------------------------|--------------------------------------------------------------|
+| **Simplicity**: Easy-to-use API for database access. | **Error Handling**: May need more robust error handling depending on use case. |
+| **Exception Management**: Built-in try-catch. | **Concurrency**: SQLite's write operations are not highly concurrent.          |
+| **Combined Insert/Update**: Streamlined with `AddOrUpdate()`. | **Limited Control**: Less control compared to writing custom SQL for each operation. |
+
+## Resources for Further Reading
+Here are some references to learn more about SQLite CRUD operations in C#:
+
+- [SQLite Documentation](https://www.sqlite.org/docs.html)
+- [Microsoft Data SQLite Documentation](https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/?tabs=netcore-cli)
+- [C# SQLite Tutorial](https://zetcode.com/csharp/sqlite/)
+
+---
