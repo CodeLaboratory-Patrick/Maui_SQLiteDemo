@@ -19,10 +19,8 @@ public class Customer : TableData
     public bool IsYoung =>
         Age > 50 ? true : false;
     
-    [ForeignKey(typeof(Passport))]
-    public int PassportId { get; set; }
-    [OneToOne(CascadeOperations = CascadeOperation.CascadeInsert | 
+    [OneToMany(CascadeOperations = CascadeOperation.CascadeInsert | 
                                   CascadeOperation.CascadeRead |
                                   CascadeOperation.CascadeDelete)]
-    public Passport Passport { get; set; }
+    public List<Passport> Passport { get; set; }
 }
